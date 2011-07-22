@@ -1,0 +1,18 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+repositories {
+   mavenCentral()
+   mavenRepo urls: 'http://openjena.org/repo'
+}
+
+version = '1.0'
+
+ideaProject {
+    javaVersion = '1.6'
+}
+
+dependencies {
+	compile 'com.hp.hpl.jena:jena:2.6.4'
+	compile 'com.hp.hpl.jena:tdb:0.8.10'
+}
