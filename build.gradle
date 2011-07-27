@@ -15,7 +15,9 @@ ideaProject {
 dependencies {
 	compile 'com.hp.hpl.jena:jena:2.6.4'
 	compile 'com.hp.hpl.jena:tdb:0.8.10'
-	
+
+    groovy      'org.codehaus.groovy:groovy-all:1.7.4'
+
 	testCompile 'org.spockframework:spock-core:0.4-groovy-1.7'
     testCompile 'junit:junit:4.8.1'
     testCompile 'cglib:cglib-nodep:2.2'
@@ -26,6 +28,13 @@ main = 'com.controlj.jenaexp.Main'
 classpath = sourceSets.main.runtimeClasspath
 //args = Arrays.asList(props.split()) 
 }
+
+// The following strangeness is to get groovy dependencies only in the test configurations
+configurations {
+    compile.extendsFrom = [ providedCompile ]
+    testCompile.extendsFrom groovy
+}
+
 
 jar {
     from configurations.compile.collect {
