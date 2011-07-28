@@ -13,6 +13,7 @@ import com.hp.hpl.jena.vocabulary.RDFS
 import com.controlj.jenaexp.CJP
 import com.controlj.jenaexp.DBIDResource
 import com.hp.hpl.jena.vocabulary.RDF
+import com.hp.hpl.jena.reasoner.ReasonerRegistry
 
 class BasicTest extends Specification {
     private static final String baseURI = "http://com.controlj.semantic.";
@@ -89,12 +90,13 @@ class BasicTest extends Specification {
 
         setup:
         model = ModelFactory.createDefaultModel();
-
         DBIDResource.resource("100", model)
             .addProperty(RDF.type, CJP.BAI)
             .addProperty(RDFS.label, "Sample Point")
 
+
         CJP.BAI.addProperty(RDFS.subClassOf, CJP.PhysicalPoint)
+        model.add(CJP.getModel())
 
         when:
         def result = runQuery(query, ModelFactory.createRDFSModel(model))

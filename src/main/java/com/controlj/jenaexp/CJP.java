@@ -7,6 +7,7 @@ import com.hp.hpl.jena.rdf.model.*;
  */
 public class CJP {
     private static Model m = ModelFactory.createDefaultModel();
+    static public Model getModel() { return m; }
 
     protected static final String uri="http://com.controlj.semantic.cjproperty#";
     public static String getSPARQLPrefix() { return "PREFIX cjp: <"+uri+">\n"; }
