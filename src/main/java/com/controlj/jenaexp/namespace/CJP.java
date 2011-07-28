@@ -1,4 +1,4 @@
-package com.controlj.jenaexp;
+package com.controlj.jenaexp.namespace;
 
 import com.hp.hpl.jena.rdf.model.*;
 
