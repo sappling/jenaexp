@@ -23,4 +23,6 @@ public class CJP {
 
     public static final Property areaType = property("areaType");
     public static final Property dispName = property("dispName");
+
+    public static final Property hasGeoParent = property("hasGeoParent");
 }

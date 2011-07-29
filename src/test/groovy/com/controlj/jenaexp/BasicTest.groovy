@@ -12,9 +12,10 @@ import com.hp.hpl.jena.vocabulary.RDFS
 import com.controlj.jenaexp.namespace.CJP
 import com.controlj.jenaexp.namespace.DBIDResource
 import com.hp.hpl.jena.vocabulary.RDF
+import com.hp.hpl.jena.rdf.model.Resource
 
 class BasicTest extends Specification {
-    Model model;
+    Model model = ModelFactory.createDefaultModel();
 
     def runQuery(String queryString, Model model) {
         QueryExecution qe = QueryExecutionFactory.create(queryString, model)
@@ -51,7 +52,7 @@ class BasicTest extends Specification {
          ?x cjp:dispName ?name . }'''
 
         setup:
-        model = ModelFactory.createDefaultModel();
+        //model = ModelFactory.createDefaultModel();
 
         DBIDResource.resource("100")
             .addProperty(CJP.areaType, "campus")
@@ -72,7 +73,7 @@ class BasicTest extends Specification {
         
     }
 
-    def withRDFS() {
+    def "RDFS sucClassOf Inference"() {
         String query = CJP.getSPARQLPrefix() +
         'PREFIX rdfs: <'+RDFS.uri+'>\n'+
         'PREFIX rdf: <'+RDF.getURI()+'>\n'+        
@@ -81,7 +82,6 @@ class BasicTest extends Specification {
          ?x rdfs:label ?label . }'''
 
         setup:
-        model = ModelFactory.createDefaultModel();
         DBIDResource.resource("100")
             .addProperty(RDF.type, CJP.BAI)
             .addProperty(RDFS.label, "Sample Point")
@@ -97,5 +97,51 @@ class BasicTest extends Specification {
         then:
         result.size() == 1
         result[0].label == "Sample Point"
+    }
+    
+
+    def "Tree Test"() {
+        setup:
+        Resource root = DBIDResource.resource("000")
+            .addProperty(CJP.areaType, "Root")
+
+        String query = CJP.getSPARQLPrefix() +
+        'PREFIX rdfs: <'+RDFS.uri+'>\n'+
+        """SELECT ?name WHERE
+        { ?x cjp:hasGeoParent+ <${root.URI}> .
+         ?x rdfs:label ?name . }"""
+
+        Resource campus = DBIDResource.resource("100")
+            .addProperty(CJP.areaType, "campus")
+            .addProperty(RDFS.label, "U of KW")
+            .addProperty(CJP.hasGeoParent, root)
+
+        DBIDResource.resource("110")
+            .addProperty(CJP.areaType, "building")
+            .addProperty(RDFS.label, "Simonton Hall")
+            .addProperty(CJP.hasGeoParent, campus)
+
+        Resource dHall = DBIDResource.resource("120")
+            .addProperty(CJP.areaType, "building")
+            .addProperty(RDFS.label, "Duval Hall")
+            .addProperty(CJP.hasGeoParent, campus)
+
+        DBIDResource.resource("121")
+            .addProperty(CJP.areaType, "gym")
+            .addProperty(RDFS.label, "DH Gym")
+            .addProperty(CJP.hasGeoParent, dHall)
+
+
+        model.add(CJP.getModel())
+        model.add(DBIDResource.getModel())
+
+        when:
+        def result = runQuery(query, model)
+
+        then:
+        result.size() == 4
+        result*.name.containsAll(["U of KW", "Simonton Hall", "Duval Hall", "DH Gym"])
+        //result[0].name == "Fielding Hall"
+
     }
 }
