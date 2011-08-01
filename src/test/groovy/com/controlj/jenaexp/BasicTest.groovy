@@ -53,16 +53,16 @@ class BasicTest extends Specification {
 
         setup:
         //model = ModelFactory.createDefaultModel();
+        DBIDResource dbid = new DBIDResource(model);
 
-        DBIDResource.resource("100")
+        dbid.resource("100")
             .addProperty(CJP.areaType, "campus")
             .addProperty(CJP.dispName, "School 1")
 
-        DBIDResource.resource("200")
+        dbid.resource("200")
             .addProperty(CJP.areaType, "building")
             .addProperty(CJP.dispName, "Fielding Hall")
         model.add(CJP.getModel())
-        model.add(DBIDResource.getModel())
 
         when:
         def result = runQuery(query, model)
@@ -70,8 +70,8 @@ class BasicTest extends Specification {
         then:
         result.size() == 1
         result[0].name == "Fielding Hall"
-        
     }
+
 
     def "RDFS sucClassOf Inference"() {
         String query = CJP.getSPARQLPrefix() +
@@ -82,14 +82,15 @@ class BasicTest extends Specification {
          ?x rdfs:label ?label . }'''
 
         setup:
-        DBIDResource.resource("100")
+        DBIDResource dbid = new DBIDResource(model);
+
+        dbid.resource("100")
             .addProperty(RDF.type, CJP.BAI)
             .addProperty(RDFS.label, "Sample Point")
 
 
         CJP.BAI.addProperty(RDFS.subClassOf, CJP.PhysicalPoint)
         model.add(CJP.getModel())
-        model.add(DBIDResource.getModel())
 
         when:
         def result = runQuery(query, ModelFactory.createRDFSModel(model))
@@ -101,47 +102,60 @@ class BasicTest extends Specification {
     
 
     def "Tree Test"() {
+        /*
+        000
+           100
+              110
+              120
+                 121
+           200
+        */
         setup:
-        Resource root = DBIDResource.resource("000")
+        DBIDResource dbid = new DBIDResource(model);
+
+        Resource root = dbid.resource("000")
             .addProperty(CJP.areaType, "Root")
 
-        String query = CJP.getSPARQLPrefix() +
-        'PREFIX rdfs: <'+RDFS.uri+'>\n'+
-        """SELECT ?name WHERE
-        { ?x cjp:hasGeoParent+ <${root.URI}> .
-         ?x rdfs:label ?name . }"""
-
-        Resource campus = DBIDResource.resource("100")
+        Resource campus = dbid.resource("100")
             .addProperty(CJP.areaType, "campus")
             .addProperty(RDFS.label, "U of KW")
             .addProperty(CJP.hasGeoParent, root)
 
-        DBIDResource.resource("110")
+        dbid.resource("200")
+            .addProperty(CJP.areaType, "campus")
+            .addProperty(RDFS.label, "U of Z")
+            .addProperty(CJP.hasGeoParent, root)
+
+        dbid.resource("110")
             .addProperty(CJP.areaType, "building")
             .addProperty(RDFS.label, "Simonton Hall")
             .addProperty(CJP.hasGeoParent, campus)
 
-        Resource dHall = DBIDResource.resource("120")
+        Resource dHall = dbid.resource("120")
             .addProperty(CJP.areaType, "building")
             .addProperty(RDFS.label, "Duval Hall")
             .addProperty(CJP.hasGeoParent, campus)
 
-        DBIDResource.resource("121")
+        dbid.resource("121")
             .addProperty(CJP.areaType, "gym")
             .addProperty(RDFS.label, "DH Gym")
             .addProperty(CJP.hasGeoParent, dHall)
 
 
         model.add(CJP.getModel())
-        model.add(DBIDResource.getModel())
+
+        // Find all decendants of 100
+        String query = CJP.getSPARQLPrefix() +
+        'PREFIX rdfs: <'+RDFS.uri+'>\n'+
+        """SELECT ?name WHERE
+        { ?x cjp:hasGeoParent+ <${campus.URI}> .
+         ?x rdfs:label ?name . }"""
 
         when:
         def result = runQuery(query, model)
 
         then:
-        result.size() == 4
-        result*.name.containsAll(["U of KW", "Simonton Hall", "Duval Hall", "DH Gym"])
-        //result[0].name == "Fielding Hall"
-
+        result.size() == 3
+        result*.name.containsAll(["Simonton Hall", "Duval Hall", "DH Gym"])
     }
 }

@@ -9,12 +9,15 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
  *
  */
 public class DBIDResource {
-    private static Model m = ModelFactory.createDefaultModel();
-    static public Model getModel() { return m; }
+    private Model m;
+
+    public DBIDResource(Model model) { m = model; }
+
+    public Model getModel() { return m; }
 
     protected static final String uri="http://com.controlj.semantic.dbid#";
 
 
-    public static Resource resource( String local)
+    public Resource resource( String local)
         { return m.createResource( uri + local ); }
 }

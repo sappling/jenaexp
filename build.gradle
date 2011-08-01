@@ -15,6 +15,7 @@ ideaProject {
 dependencies {
 	compile 'com.hp.hpl.jena:jena:2.6.4'
 	compile 'com.hp.hpl.jena:tdb:0.8.10'
+    compile 'commons-io:commons-io:2.0.1'
 
     groovy      'org.codehaus.groovy:groovy-all:1.7.4'
 
@@ -46,7 +47,7 @@ jar {
 }
 
 
-File launcherBuildDir = file('build')
+File launcherBuildDir = file('.')
 String scriptName = 'jenaexp.sh'
 File script = new File(launcherBuildDir, scriptName)
 
@@ -54,13 +55,13 @@ task launchers(dependsOn: jar) << {
     launcherBuildDir.mkdirs()
     
     script.text = """#!/bin/bash
-java -jar libs/${jar.archiveName} \$*
+java -jar build/libs/${jar.archiveName} \$*
 """
     script.setExecutable(true, false);
 
     File batch = new File(launcherBuildDir, 'trendclient.bat')
     batch.text = """@echo off
-java -jar libs\\${jar.archiveName} %*
+java -jar build\\libs\\${jar.archiveName} %*
 """    
 }
 
